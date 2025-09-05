@@ -5,232 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Bild-Uploader</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0d1117;
-            background: linear-gradient(-45deg, #0d1117, #161b22, #0d1117);
-            background-size: 400% 400%;
-            animation: gradient-animation 15s ease infinite;
+            background: #000;
+            background: linear-gradient(135deg, #1f2937 0%, #000000 100%);
+            color: #d1d5db;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 1.5rem;
-        }
-        @keyframes gradient-animation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            margin: 0;
+            transition: background 0.5s ease-in-out;
         }
         .container {
-            max-width: 32rem;
-            width: 100%;
-            background-color: #161b22;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-            border: 1px solid #30363d;
-            transition: all 0.3s ease-in-out;
+            backdrop-filter: blur(10px);
+            background-color: rgba(31, 41, 55, 0.7);
+            border: 1px solid rgba(75, 85, 99, 0.5);
         }
         .container:hover {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
-        .input-group input {
-            @apply w-full text-gray-200 bg-gray-700 border border-gray-600 rounded-lg p-3 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500;
+        .btn-primary {
+            transition: all 0.3s ease;
+            transform: scale(1);
         }
-        .preview-container {
-            position: relative;
-            background-color: #21262d;
-            border: 2px dashed #444c56;
-            border-radius: 1rem;
-            height: 12rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            transition: all 0.3s ease-in-out;
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.5), 0 4px 6px -2px rgba(34, 197, 94, 0.5);
         }
-        .preview-container:hover {
-            border-color: #58a6ff;
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
         }
-        .preview-image {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        .placeholder-text {
-            color: #8b949e;
-            user-select: none;
-            transition: all 0.3s ease-in-out;
-        }
-        .copy-button {
-            @apply ml-2 px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors duration-200;
+        .loading-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
     </style>
 </head>
-<body class="bg-gray-900">
+<body>
 
-<div class="container">
-    <!-- Titel -->
-    <h1 class="text-3xl font-bold text-center text-white mb-8">GitHub Bild-Uploader</h1>
+<div class="container rounded-2xl shadow-xl p-8 max-w-lg w-full transform transition-all duration-500">
+    <h1 class="text-3xl font-bold text-white text-center mb-6">GitHub Bild-Uploader</h1>
+    <p class="text-center text-gray-400 mb-8">Wähle ein Bild aus, und lade es sicher in dein GitHub-Repository hoch.</p>
 
-    <!-- Optionale Eingabe für den Dateinamen -->
-    <div class="mb-6">
-        <label for="custom-filename-input" class="block text-gray-400 font-semibold mb-2">Wähle einen Namen (optional)</label>
-        <input id="custom-filename-input" type="text" placeholder="Mein-Bild" class="w-full text-gray-200 bg-gray-700 border border-gray-600 rounded-lg p-3 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-    </div>
+    <div id="status-message" class="hidden bg-gray-700 text-center py-3 px-4 rounded-lg mb-6 text-sm"></div>
 
-    <!-- Dateiupload-Bereich -->
-    <div class="mb-6">
-        <label for="file-input" class="block text-gray-400 font-semibold mb-2">Wähle ein Bild aus</label>
-        <input id="file-input" type="file" accept="image/*" class="w-full text-gray-200 bg-gray-700 border border-gray-600 rounded-lg p-3 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer file:rounded-md file:border-0 file:bg-gray-600 file:text-white file:px-4 file:py-1 file:mr-4 file:font-semibold">
-    </div>
-
-    <!-- Bildvorschau -->
-    <div class="mb-6">
-        <div id="preview-container" class="preview-container">
-            <span id="placeholder-text" class="placeholder-text">Bildvorschau hier</span>
-            <img id="preview-image" src="#" alt="Bildvorschau" class="preview-image hidden">
+    <form id="uploadForm" class="space-y-6">
+        <div>
+            <label for="imageName" class="block text-sm font-medium text-gray-300">
+                Optional: Wähle einen Namen für das Bild
+            </label>
+            <input type="text" id="imageName" name="imageName" placeholder="Mein Bild" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 transition-all duration-300">
         </div>
+
+        <div class="flex items-center justify-center w-full">
+            <label for="fileInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors duration-300">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-8 h-8 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="mb-2 text-sm text-gray-400">
+                        <span class="font-semibold">Klicken, um eine Datei hochzuladen</span> oder ziehen und ablegen
+                    </p>
+                    <p class="text-xs text-gray-500">PNG, JPG, JPEG oder GIF</p>
+                </div>
+                <input id="fileInput" type="file" class="hidden" accept="image/png, image/jpeg, image/jpg, image/gif" />
+            </label>
+        </div>
+
+        <button id="uploadButton" type="submit" class="btn-primary w-full py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50">
+            Upload starten
+        </button>
+    </form>
+
+    <div id="result" class="hidden mt-6 text-center">
+        <p class="text-gray-300 mb-2">Dein Bild wurde hochgeladen!</p>
+        <div class="relative flex items-center bg-gray-800 rounded-lg p-3">
+            <span id="shortUrl" class="block text-sm font-mono text-green-400 truncate pr-16"></span>
+            <button onclick="copyUrl()" class="absolute right-2 px-3 py-1 bg-green-700 text-white rounded-md text-xs hover:bg-green-600">
+                Kopieren
+            </button>
+        </div>
+        <a id="fullUrl" href="#" target="_blank" class="mt-2 inline-block text-green-500 hover:underline text-sm">Vollständige URL anzeigen</a>
     </div>
-
-    <!-- Upload-Button -->
-    <button id="upload-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transform hover:scale-105 disabled:bg-blue-400 disabled:transform-none" disabled>
-        Upload starten
-    </button>
-
-    <!-- Statusmeldung -->
-    <p id="status-message" class="text-center mt-6 text-sm text-gray-400">Bitte wähle eine Datei aus.</p>
 </div>
 
 <script>
-    // Feste Werte für das Repository
-    const REPO_OWNER = 'CodingNevnex';
-    const REPO_NAME = 'image-uploader';
-    const REPO_PATH = 'image-uploader';
-    const VERCEL_DOMAIN = 'image-uploader-xi-roan.vercel.app/image-uploader/';
-
-    // Referenzen auf DOM-Elemente
-    const fileInput = document.getElementById('file-input');
-    const customFilenameInput = document.getElementById('custom-filename-input');
-    const uploadBtn = document.getElementById('upload-btn');
-    const previewImage = document.getElementById('preview-image');
-    const placeholderText = document.getElementById('placeholder-text');
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const imageNameInput = document.getElementById('imageName');
     const statusMessage = document.getElementById('status-message');
+    const uploadButton = document.getElementById('uploadButton');
+    const resultDiv = document.getElementById('result');
+    const shortUrlSpan = document.getElementById('shortUrl');
+    const fullUrlLink = document.getElementById('fullUrl');
 
-    // Funktion zum Überprüfen, ob der Upload gestartet werden kann
-    function checkInputs() {
+    const vercelDomain = 'image-uploader-xi-roan.vercel.app';
+    const repoPath = 'image-uploader';
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
         const file = fileInput.files[0];
-        if (file) {
-            uploadBtn.disabled = false;
-            statusMessage.textContent = 'Bereit zum Hochladen.';
+        if (!file) {
+            showMessage('Bitte wähle zuerst eine Datei aus.', 'red');
+            return;
+        }
+
+        const fileName = imageNameInput.value || file.name;
+        const filePath = `${repoPath}/${fileName}`;
+
+        showMessage('Lade Bild hoch...', 'blue');
+        setLoading(true);
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+
+        reader.onloadend = async () => {
+            const base64Content = reader.result.split(',')[1];
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fileName: fileName,
+                        filePath: filePath,
+                        content: base64Content,
+                    }),
+                });
+
+                if (response.ok) {
+                    showMessage('Upload erfolgreich!', 'green');
+                    const imageUrl = `https://${vercelDomain}/${filePath}`;
+                    
+                    shortUrlSpan.textContent = imageUrl;
+                    fullUrlLink.href = imageUrl;
+                    
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    const error = await response.json();
+                    showMessage(`Upload fehlgeschlagen: ${error.message}`, 'red');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showMessage(`Ein Fehler ist aufgetreten: ${error.message}`, 'red');
+            } finally {
+                setLoading(false);
+            }
+        };
+    });
+
+    function showMessage(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.classList.remove('hidden', 'bg-red-700', 'bg-green-700', 'bg-blue-700');
+        statusMessage.classList.add(`bg-${type}-700`);
+    }
+
+    function setLoading(isLoading) {
+        uploadButton.disabled = isLoading;
+        uploadButton.textContent = isLoading ? 'Lädt hoch...' : 'Upload starten';
+        if (isLoading) {
+            uploadButton.classList.add('loading-animation');
         } else {
-            uploadBtn.disabled = true;
-            statusMessage.textContent = 'Bitte wähle eine Datei aus.';
+            uploadButton.classList.remove('loading-animation');
         }
     }
 
-    // Event-Listener für Dateiauswahl
-    fileInput.addEventListener('change', checkInputs);
-
-    // Initialer Check beim Laden der Seite
-    window.onload = checkInputs;
-
-    // Event-Listener für Bildvorschau
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImage.src = e.target.result;
-                previewImage.classList.remove('hidden');
-                placeholderText.classList.add('hidden');
-            };
-            reader.readAsDataURL(file);
-        } else {
-            previewImage.src = '#';
-            previewImage.classList.add('hidden');
-            placeholderText.classList.remove('hidden');
-        }
-    });
-
-    // Event-Listener für den Upload-Button
-    uploadBtn.addEventListener('click', async () => {
-        const file = fileInput.files[0];
-        
-        let fileName = customFilenameInput.value.trim();
-        // Fallback zum Original-Namen, falls kein benutzerdefinierter Name angegeben wurde
-        if (fileName === '') {
-            fileName = file.name;
-        } else {
-            // Füge die Dateiendung hinzu, falls sie fehlt
-            const fileExtension = file.name.split('.').pop();
-            if (!fileName.includes('.' + fileExtension)) {
-                fileName += '.' + fileExtension;
-            }
-        }
-        
-        const commitMessage = `Upload ${fileName}`;
-        const filePath = `${REPO_PATH}/${fileName}`;
-
-        uploadBtn.disabled = true;
-        statusMessage.textContent = 'Upload wird vorbereitet...';
-
-        try {
-            // Sende die Daten an die Serverless Function
-            const uploadResponse = await fetch('/api/upload', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    fileName: fileName,
-                    filePath: filePath,
-                    content: await fileToBase64(file),
-                })
-            });
-
-            if (uploadResponse.ok) {
-                const vercelUrl = `https://image-uploader-xi-roan.vercel.app/image-uploader/`;
-                statusMessage.innerHTML = `
-                    <div class="flex flex-col items-center">
-                        <span>Upload erfolgreich!</span>
-                        <div class="mt-2 flex items-center bg-gray-700 text-gray-200 px-3 py-2 rounded-lg">
-                            <span class="truncate">${fileName}</span>
-                            <button onclick="navigator.clipboard.writeText('${vercelUrl}');" class="copy-button">
-                                Link kopieren
-                            </button>
-                        </div>
-                    </div>
-                `;
-                statusMessage.classList.remove('text-gray-400', 'text-red-400');
-                statusMessage.classList.add('text-green-400');
-            } else {
-                const error = await uploadResponse.json();
-                throw new Error(`Upload fehlgeschlagen: ${error.message}`);
-            }
-        } catch (error) {
-            statusMessage.textContent = `Ein Fehler ist aufgetreten: ${error.message}`;
-            statusMessage.classList.remove('text-gray-400', 'text-green-400');
-            statusMessage.classList.add('text-red-400');
-        } finally {
-            uploadBtn.disabled = false;
-        }
-    });
-
-    // Hilfsfunktion zum Konvertieren der Datei in Base64
-    function fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = error => reject(error);
-        });
+    function copyUrl() {
+        const url = shortUrlSpan.textContent;
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showMessage('Link in die Zwischenablage kopiert!', 'green');
     }
 </script>
 
