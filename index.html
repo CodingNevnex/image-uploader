@@ -64,8 +64,8 @@
         </div>
 
         <div class="flex items-center justify-center w-full">
-            <label for="fileInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors duration-300">
-                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+            <label for="fileInput" id="fileInputLabel" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors duration-300">
+                <div id="uploadIcon" class="flex flex-col items-center justify-center pt-5 pb-6">
                     <svg class="w-8 h-8 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                     </svg>
@@ -74,6 +74,7 @@
                     </p>
                     <p class="text-xs text-gray-500">PNG, JPG, JPEG oder GIF</p>
                 </div>
+                <img id="imagePreview" src="#" alt="Image Preview" class="hidden h-full w-full object-cover rounded-lg" />
                 <input id="fileInput" type="file" class="hidden" accept="image/png, image/jpeg, image/jpg, image/gif" />
             </label>
         </div>
@@ -104,9 +105,27 @@
     const resultDiv = document.getElementById('result');
     const shortUrlSpan = document.getElementById('shortUrl');
     const fullUrlLink = document.getElementById('fullUrl');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadIcon = document.getElementById('uploadIcon');
 
     const vercelDomain = 'image-uploader-xi-roan.vercel.app';
     const repoPath = 'image-uploader';
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                imagePreview.src = event.target.result;
+                imagePreview.classList.remove('hidden');
+                uploadIcon.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.classList.add('hidden');
+            uploadIcon.classList.remove('hidden');
+        }
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -117,7 +136,9 @@
             return;
         }
 
-        const fileName = imageNameInput.value || file.name;
+        const fileExtension = file.name.split('.').pop();
+        const baseName = imageNameInput.value || file.name.split('.').slice(0, -1).join('.');
+        const fileName = `${baseName}.${fileExtension}`;
         const filePath = `${repoPath}/${fileName}`;
 
         showMessage('Lade Bild hoch...', 'blue');
