@@ -1,0 +1,12 @@
+{
+  "name": "image-uploader-api",
+  "version": "1.0.0",
+  "description": "A serverless function to upload images to GitHub.",
+  "main": "api/upload.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}
