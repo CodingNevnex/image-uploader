@@ -198,4 +198,50 @@
                     showMessage('Upload erfolgreich!', 'green');
                     const imageUrl = `https://${vercelDomain}/${filePath}`;
                     
-                    shortUrl
+                    shortUrlSpan.textContent = imageUrl;
+                    fullUrlLink.href = imageUrl;
+                    
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    const error = await response.json();
+                    showMessage(`Upload fehlgeschlagen: ${error.message}`, 'red');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showMessage(`Ein Fehler ist aufgetreten: ${error.message}`, 'red');
+            } finally {
+                setLoading(false);
+            }
+        };
+    });
+
+    function showMessage(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.classList.remove('hidden', 'bg-red-700', 'bg-green-700', 'bg-blue-700');
+        statusMessage.classList.add(`bg-${type}-700`);
+    }
+
+    function setLoading(isLoading) {
+        uploadButton.disabled = isLoading;
+        uploadButton.textContent = isLoading ? 'Lädt hoch...' : 'Upload starten';
+        if (isLoading) {
+            uploadButton.classList.add('loading-animation');
+        } else {
+            uploadButton.classList.remove('loading-animation');
+        }
+    }
+
+    function copyUrl() {
+        const url = shortUrlSpan.textContent;
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showMessage('Link in die Zwischenablage kopiert!', 'green');
+    }
+</script>
+
+</body>
+</html>
