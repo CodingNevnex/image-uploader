@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Polizei Aktenbilder</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/ycHZmT2q/Bild-2025-10-08-222911647.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -50,11 +51,18 @@
             max-width: 100%;
             object-fit: contain;
         }
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
 
 <div class="container rounded-2xl shadow-xl p-8 max-w-lg w-full transform transition-all duration-500">
+    <img src="https://i.ibb.co/ycHZmT2q/Bild-2025-10-08-222911647.png" alt="Logo" class="logo">
     <h1 class="text-3xl font-bold text-white text-center mb-6">Polizei Aktenbilder</h1>
     <p class="text-center text-gray-400 mb-8">Wähle ein Bild aus und schreibe denn dazugehören Vor- und Nachnamen auf.</p>
 
@@ -190,50 +198,4 @@
                     showMessage('Upload erfolgreich!', 'green');
                     const imageUrl = `https://${vercelDomain}/${filePath}`;
                     
-                    shortUrlSpan.textContent = imageUrl;
-                    fullUrlLink.href = imageUrl;
-                    
-                    resultDiv.classList.remove('hidden');
-                } else {
-                    const error = await response.json();
-                    showMessage(`Upload fehlgeschlagen: ${error.message}`, 'red');
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                showMessage(`Ein Fehler ist aufgetreten: ${error.message}`, 'red');
-            } finally {
-                setLoading(false);
-            }
-        };
-    });
-
-    function showMessage(message, type) {
-        statusMessage.textContent = message;
-        statusMessage.classList.remove('hidden', 'bg-red-700', 'bg-green-700', 'bg-blue-700');
-        statusMessage.classList.add(`bg-${type}-700`);
-    }
-
-    function setLoading(isLoading) {
-        uploadButton.disabled = isLoading;
-        uploadButton.textContent = isLoading ? 'Lädt hoch...' : 'Upload starten';
-        if (isLoading) {
-            uploadButton.classList.add('loading-animation');
-        } else {
-            uploadButton.classList.remove('loading-animation');
-        }
-    }
-
-    function copyUrl() {
-        const url = shortUrlSpan.textContent;
-        const textarea = document.createElement('textarea');
-        textarea.value = url;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showMessage('Link in die Zwischenablage kopiert!', 'green');
-    }
-</script>
-
-</body>
-</html>
+                    shortUrl
