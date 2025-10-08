@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Bild-Uploader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            background: linear-gradient(135deg, #1f2937 0%, #000000 100%);
+            color: #d1d5db;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background 0.5s ease-in-out;
+        }
+        .container {
+            backdrop-filter: blur(10px);
+            background-color: rgba(31, 41, 55, 0.7);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+        }
+        .container:hover {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .btn-primary {
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.5), 0 4px 6px -2px rgba(34, 197, 94, 0.5);
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        .loading-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container rounded-2xl shadow-xl p-8 max-w-lg w-full transform transition-all duration-500">
+    <h1 class="text-3xl font-bold text-white text-center mb-6">GitHub Bild-Uploader</h1>
+    <p class="text-center text-gray-400 mb-8">Wähle ein Bild aus, gib deinen Vor- und Nachnamen ein, und lade es sicher hoch.</p>
+
+    <div id="status-message" class="hidden bg-gray-700 text-center py-3 px-4 rounded-lg mb-6 text-sm"></div>
+
+    <form id="uploadForm" class="space-y-6">
+        <div>
+            <label for="firstName" class="block text-sm font-medium text-gray-300">
+                Vorname
+            </label>
+            <input type="text" id="firstName" name="firstName" placeholder="Vorname" required class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 transition-all duration-300">
+        </div>
+        <div>
+            <label for="lastName" class="block text-sm font-medium text-gray-300">
+                Nachname
+            </label>
+            <input type="text" id="lastName" name="lastName" placeholder="Nachname" required class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 transition-all duration-300">
+        </div>
+
+        <div class="flex items-center justify-center w-full">
+            <label for="fileInput" id="fileInputLabel" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors duration-300">
+                <div id="uploadIcon" class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-8 h-8 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="mb-2 text-sm text-gray-400">
+                        <span class="font-semibold">Klicken, um eine Datei hochzuladen</span> oder ziehen und ablegen
+                    </p>
+                    <p class="text-xs text-gray-500">PNG, JPG, JPEG oder GIF</p>
+                </div>
+                <img id="imagePreview" src="#" alt="Image Preview" class="hidden h-full w-full object-cover rounded-lg" />
+                <input id="fileInput" type="file" class="hidden" accept="image/png, image/jpeg, image/jpg, image/gif" />
+            </label>
+        </div>
+
+        <button id="uploadButton" type="submit" class="btn-primary w-full py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50">
+            Upload starten
+        </button>
+    </form>
+
+    <div id="result" class="hidden mt-6 text-center">
+        <p class="text-gray-300 mb-2">Dein Bild wurde hochgeladen!</p>
+        <div class="relative flex items-center bg-gray-800 rounded-lg p-3">
+            <span id="shortUrl" class="block text-sm font-mono text-green-400 truncate pr-16"></span>
+            <button onclick="copyUrl()" class="absolute right-2 px-3 py-1 bg-green-700 text-white rounded-md text-xs hover:bg-green-600">
+                Kopieren
+            </button>
+        </div>
+        <a id="fullUrl" href="#" target="_blank" class="mt-2 inline-block text-green-500 hover:underline text-sm">Vollständige URL anzeigen</a>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const firstNameInput = document.getElementById('firstName');
+    const lastNameInput = document.getElementById('lastName');
+    const statusMessage = document.getElementById('status-message');
+    const uploadButton = document.getElementById('uploadButton');
+    const resultDiv = document.getElementById('result');
+    const shortUrlSpan = document.getElementById('shortUrl');
+    const fullUrlLink = document.getElementById('fullUrl');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadIcon = document.getElementById('uploadIcon');
+
+    const vercelDomain = 'image-uploader-xi-roan.vercel.app';
+    const repoPath = 'aktenbilder';
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                imagePreview.src = event.target.result;
+                imagePreview.classList.remove('hidden');
+                uploadIcon.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.classList.add('hidden');
+            uploadIcon.classList.remove('hidden');
+        }
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const file = fileInput.files[0];
+        const firstName = firstNameInput.value.trim();
+        const lastName = lastNameInput.value.trim();
+
+        if (!file) {
+            showMessage('Bitte wähle zuerst eine Datei aus.', 'red');
+            return;
+        }
+        if (!firstName || !lastName) {
+            showMessage('Bitte gib Vorname und Nachname ein.', 'red');
+            return;
+        }
+
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        if (!['png', 'jpg', 'jpeg', 'gif'].includes(fileExtension)) {
+            showMessage('Nur PNG, JPG, JPEG oder GIF Dateien sind erlaubt.', 'red');
+            return;
+        }
+
+        const fileName = `Aktenbild_${firstName}_${lastName}.${fileExtension}`;
+        const filePath = `${repoPath}/${fileName}`;
+
+        showMessage('Lade Bild hoch...', 'blue');
+        setLoading(true);
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+
+        reader.onloadend = async () => {
+            const base64Content = reader.result.split(',')[1];
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fileName: fileName,
+                        filePath: filePath,
+                        content: base64Content,
+                    }),
+                });
+
+                if (response.ok) {
+                    showMessage('Upload erfolgreich!', 'green');
+                    const imageUrl = `https://${vercelDomain}/${filePath}`;
+                    
+                    shortUrlSpan.textContent = imageUrl;
+                    fullUrlLink.href = imageUrl;
+                    
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    const error = await response.json();
+                    showMessage(`Upload fehlgeschlagen: ${error.message}`, 'red');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showMessage(`Ein Fehler ist aufgetreten: ${error.message}`, 'red');
+            } finally {
+                setLoading(false);
+            }
+        };
+    });
+
+    function showMessage(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.classList.remove('hidden', 'bg-red-700', 'bg-green-700', 'bg-blue-700');
+        statusMessage.classList.add(`bg-${type}-700`);
+    }
+
+    function setLoading(isLoading) {
+        uploadButton.disabled = isLoading;
+        uploadButton.textContent = isLoading ? 'Lädt hoch...' : 'Upload starten';
+        if (isLoading) {
+            uploadButton.classList.add('loading-animation');
+        } else {
+            uploadButton.classList.remove('loading-animation');
+        }
+    }
+
+    function copyUrl() {
+        const url = shortUrlSpan.textContent;
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showMessage('Link in die Zwischenablage kopiert!', 'green');
+    }
+</script>
+
+</body>
+</html>
